@@ -1,18 +1,22 @@
 package com.formation.taglibs;
 
 import java.io.IOException;
-import java.io.StringWriter;
 
-import javax.servlet.jsp.JspContext;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.tagext.SimpleTagSupport;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Taglib pour afficher des messages pour l'utilisateur.
+ * @author filippo
+ */
 public class MessageTag extends TagSupport
 {
+    /**
+     * Un logger.
+     */
     private Logger logger = Logger.getLogger(this.getClass());
 
     @Override

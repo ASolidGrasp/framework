@@ -18,8 +18,31 @@ import com.formation.exceptions.runtime.SecurityManagerRuleForbidAccessToFieldEx
  * formulaire soumis.
  * @author filippo
  */
-public class MyBeanPopulate
+public class FormFiller
 {
+    /**
+     * Instance unique du FormFiller.
+     */
+    private static FormFiller formFillerInstance = new FormFiller();
+
+    /**
+     * Constructeur privé pour garantir l'unicité de l'instance.
+     */
+    private FormFiller()
+    {
+    }
+
+    /**
+     * Seul accès public à l'instance de cete classe. Cet accès ne permet pas
+     * d'instancier mais de récupérer l'instance créée au chargement de la
+     * classe.
+     * @return L'instance unique du FormFiller
+     */
+    public static FormFiller getFormFiller()
+    {
+        return formFillerInstance;
+    }
+
     /**
      * Logger.
      */

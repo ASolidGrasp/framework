@@ -1,0 +1,135 @@
+    __________                          ___       __    ______       ____________
+    ___  ____/_____ ____________  __    __ |     / /_______  /_      __<  /__<  /
+    __  __/  _  __ `/_  ___/_  / / /    __ | /| / /_  _ \_  __ \     __  / __  / 
+    _  /___  / /_/ /_(__  )_  /_/ /     __ |/ |/ / /  __/  /_/ /     _  /___  /  
+    /_____/  \__,_/ /____/ _\__, /      ____/|__/  \___//_.___/      /_/_(_)_/   
+                           /____/                                                
+    
+    Bienvenus dans le framework JSP EasyWeb Version 1.1
+    
+    Plan :
+    I) Utilisation
+    II) Aspects techniques
+    III) Souci de la qualité
+    IV) Nombreuses voies d'amélioration
+    
+    I - Utilisation
+    ======================================================================================================================
+    
+    Ce framework est capable de :
+    
+    1) trouver vos Actions et ActionForms, qu'ils soient :
+    
+        - déclarés individuelement dans le fichier de configuration easyweb.1.0.xml
+        - annotés par @Action et @ActionForm et qu'on ait indiqué les packages à scanner dans le fichier easyweb.1.1.xml
+        
+        Le framework vous empêchera d'emprunter ces deux approches en parallèle et vous forcera à faire un choix en levant 
+        des exceptions.
+        
+    2) De sauver dans l'actionForm les valeurs des formulaires que vous soumettez.
+    
+    3) De mettre en session les valeurs de votre formulaire et de vous les restituer.
+    
+    Pour rendre ceci possible le framework met à votre disposition des taglibs
+    Les tags aujourd'hui présents sont :
+        - <tt:form action="">...</tt:form> qui sera rendu par <form method="post" action=""></form>
+        - <tt:input name=""/> qui sera rendu par <input type="text" name=""/>
+        - <tt:property name="" /> qui permettra d'afficher les attributs de vos ActionForms
+        - <tt:msg/> pour afficher des messages sur la saisie du formulaire.
+        
+    II - Aspects techniques.
+    ======================================================================================================================
+    
+    Prise en charge des annotations
+    ---------------------------------
+    Vos classes Action doivent :
+    - implémenter la classe com.formation.archetypes.Action (c'est contrôlé lors de la recherche d'annotations)
+    - soit :
+        - être annotées @com.formation.annotations.Action et avoir leur package renseigné dans src/main/resources/easyweb.1.1.xml
+        (conseillé)
+        - être déclarées dans le fichier easyweb.1.0.xml
+    Vos classes ActionForm doivent :
+    - hériter directement ou indirectement de la classe abstraite ActionForm (c'est contrôlé lors de la recherche d'annotations)
+    - soit :
+        - être annotées @com.formation.annotations.ActionForm et avoir leur package renseigné dans src/main/resources/easyweb.1.1.xml
+        (conseillé)
+        - être déclarées dans le fichier easyweb.1.0.xml
+    La lecture de la configuration est faite dans tous les cas à l'initialisation du contrôleur pour ne pas ralentir la première requête.  
+    
+    Design Patterns
+    ---------------------------------
+    Les Action et ActionForm sont instanciés par une Factory générique (elle-même singleton).
+    La classe de lecture de configuration ConfigurationReader est elle-même un singleton.
+
+    Exceptions
+    ---------------------------------
+    Le framework lève plusieurs types de Runtime exceptions pour vous aider autant que possible sur les erreurs de configuration que 
+    vous avez pu commettre:
+    - FileNotFoundException si un fichier de configuration n'a pas été trouvés.
+    - NameSuppliedInFormInputDoesNotMatchAnyActionFormFieldException s'il n'y a pas de correspondance entre les noms de vos formulaires 
+    avec les noms des attributs des ActionForm correspondants
+    - NoConfigurationProvidedException si vous n'indiquez vos Actions et ActionForms dans aucune des approches conseillées.
+    - NoGetterMethodFoundForProvidedFormInputNameException si un getter d'un ActionForm n'est pas trouvé. Peut-être son nom n'est-il 
+    plus en correspondance avec celui de l'attribut.
+    - NoSetterMethodFoundForProvidedFormInputNameException si un setter d'un ActionForm n'est pas trouvé. Peut-être son nom n'est-il 
+    plus en correspondance avec celui de l'attribut.
+    - OldConfigurationFileFoundWhileUsingAnnotationsException si vous suivez les deux approches de configuration en parallèle 
+    (annotations+vieux fichier de configuration).
+    - SecurityManagerRuleForbidAccessToFieldException si des règles données par le SecurityManager empêche l'accès à des éléments 
+    de vos ActionForms.
+    - WrongActionCanonicalNameSpecifiedException si le nom canonique de l'une de vos Actions est incorrect.
+    - WrongActionFormCanonicalNameSpecifiedException si le nom canonique de l'un de vos ActionForms est incorrect.
+    - WrongPackageNamesInPackagesToScanException si un des packages renseignés dans easyweb.1.1.xml est incorrect.
+    - XMLParsingException si un de vos fichiers de configuration ne peut être parsé car il est mal formé.
+    
+    Les choix faits sur les exceptions sont inspirés des suggestions de :
+    - Bruce Eckel dans Thinking in Java 4th Ed.
+    - Joshua Bloch dans Effective Java 2nd Ed.
+    Notamment Joshua Bloch dit qu'une checked exception est à lever quand l'utilisateur de la classe qui lève l'exception peut 
+    le récupérer.
+    Et qu'il faut lever des RuntimeException lorsque l'exception provient d'une mauvaise utilisation de la part de l'utilisateur.
+    Voilà pourquoi je n'ai levé que des RuntimeException.
+    Bruce Eckel suggère d'avoir des Exceptions spécifiques dont le nom est presque suffisant par lui-même à expliquer le problème 
+    survenu.
+    J'ai opté pour utiliser une classe par exception. Et de les rendre toutes chaînables.
+    Certaines checked exceptions ont été chaînés dans ce but dans des RuntimeException.
+    Pour ce qui est de l'emplacement où traiter l'exception j'ai essayé de le faire là où j'avais suffisament d'information sur 
+    les causes de l'erreur.
+    C'est par exemple le cas dans le scan des packages. Un mauvais nom de package peut donner lieu à un tas d'erreur dans 
+    les sous-méthodes mais ces erreurs ne sont pas intéressantes. Ce qui est intéressant c'est au niveau supérieur de savoir que la cause 
+    est un nom de package mauvais.
+    
+    III Souci de la qualité
+    ======================================================================================================================
+    Checkstyle a été utilisé pour aider à produire un code :
+    - documenté (Javadoc omniprésente, complète et explicite)
+    - simple (complexité cyclomatique <= 6), ce qui a conduit à couper les méthodes en nombre de petites méthodes aux noms explicites.
+    Le fichier checkstyle.xml utilisé est joint.
+    
+    IV Nombreuses voies d'amélioration
+    ======================================================================================================================
+    
+    TAGS
+    -----
+    Affiner les tags déjà présents pour prendre en compte d'autres attributs pouvant être intéressants, notamment :
+    - type dans input pour prendre en charge également les submit
+    - method dans form pour donner la possibilité de soumettre un form en GET
+    
+    Ajouter des tags pour prendre en charge :
+    - la conversion de type pour pouvoir mettre dans les ActionForm des attributs d'autre type que String.
+    - <head>
+    - <link>
+    - <script>
+    - <body>
+    - et bien d'autres encore
+    
+    
+    Annotations
+    -----------
+    Scanner partout et ne pas avoir à spécifier de package à scanner.
+    
+    Exception
+    ---------
+    Avoir une idée plus précise de la gestion des exceptions
+    
+

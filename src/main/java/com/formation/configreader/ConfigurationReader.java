@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +46,17 @@ public final class ConfigurationReader
      */
     private final String classFileExtension = ".class";
     /**
+     * Name of the xml configuration file where you have to specify each Action
+     * and ActionForm individually.
+     */
+    private String oldConfigurationFileName;
+    /**
+     * Name of the xml configuration file where you just need to give a package
+     * to scan for the framework to find the @Action and @Actionform
+     * annotations.
+     */
+    private String newConfigurationFileName;
+    /**
      * Instance de la classe initialisée dès le chargement de la classe et
      * renvoyée par la classe à chaque demande d'instanciation pour assurer son
      * unicité. Design Pattern Singleton.
@@ -62,6 +74,18 @@ public final class ConfigurationReader
      */
     private ConfigurationReader()
     {
+        InputStream iS = Thread.currentThread().getContextClassLoader().getResourceAsStream("configurationFiles.properties");
+        Properties properties = new Properties();
+        try
+        {
+            properties.load(iS);
+        }
+        catch (IOException e)
+        {
+            logger.error("The configurationFiles.properties file has not been found");
+        }
+        oldConfigurationFileName = properties.getProperty("old");
+        newConfigurationFileName = properties.getProperty("new");
     }
 
     /**
@@ -122,7 +146,7 @@ public final class ConfigurationReader
             }
             else
             {
-                throw new OldConfigurationFileFoundWhileUsingAnnotationsException("In order to avoid confusion with the annotations you're using please remove your old-fashioned xml configuration file named myFrameworkConfig.xml located in src/main/resources");
+                throw new OldConfigurationFileFoundWhileUsingAnnotationsException("In order to avoid confusion with the annotations you're using please remove your old-fashioned xml configuration file named " + oldConfigurationFileName + " located in src/main/resources");
             }
         }
         else
@@ -168,7 +192,7 @@ public final class ConfigurationReader
                 // usage exceptionnel d'exceptions groupées A|B car les deux
                 // types d'exceptions viennent d'un même problème : mauvais nom
                 // de package
-                throw new WrongPackageNamesInPackagesToScanException("At least one package to scan for @Action or @ActionForm annotations does not exist. Please check your myFrameworkConfigLite.xml configuration file." + "\n" + e.getMessage());
+                throw new WrongPackageNamesInPackagesToScanException("At least one package to scan for @Action or @ActionForm annotations does not exist. Please check your " + newConfigurationFileName + " configuration file." + "\n" + e.getMessage());
             }
             for (Class<?> aClass : classesHote)
             {
@@ -228,7 +252,7 @@ public final class ConfigurationReader
      */
     private Map<String, String[]> addClassToActionsMapIfCompliant(Class<?> aClass, Map<String, String[]> actionsMap)
     {
-        if (aClass.isAnnotationPresent(Action.class))
+        if (aClass.isAnnotationPresent(Action.class) && doesImplement(aClass, com.formation.archetypes.Action.class))
         {
             Action actionAnnotation = (Action) aClass.getAnnotation(Action.class);
             actionsMap.put(actionAnnotation.formName(), new String[]
@@ -255,7 +279,7 @@ public final class ConfigurationReader
      */
     private Map<String, String> addClassToActionFormsMapIfCompliant(Class<?> aClass, Map<String, String> formsMap)
     {
-        if (aClass.isAnnotationPresent(ActionForm.class))
+        if (aClass.isAnnotationPresent(ActionForm.class) &&  com.formation.archetypes.ActionForm.class.isAssignableFrom(aClass))
         {
             ActionForm actionFormAnnotation = (ActionForm) aClass.getAnnotation(ActionForm.class);
             formsMap.put(actionFormAnnotation.name(), aClass.getCanonicalName());
@@ -270,7 +294,7 @@ public final class ConfigurationReader
      */
     private boolean oldConfigFileFound()
     {
-        InputStream oldIS = Thread.currentThread().getContextClassLoader().getResourceAsStream("/myFrameworkConfig.xml");
+        InputStream oldIS = Thread.currentThread().getContextClassLoader().getResourceAsStream("/" + oldConfigurationFileName);
         if (oldIS != null)
         {
             return true;
@@ -290,17 +314,17 @@ public final class ConfigurationReader
         try
         {
             DocumentBuilder dB = dBF.newDocumentBuilder();
-            InputStream iS = Thread.currentThread().getContextClassLoader().getResourceAsStream("/myFrameworkConfigLite.xml");
+            InputStream iS = Thread.currentThread().getContextClassLoader().getResourceAsStream("/" + newConfigurationFileName);
             Document document = dB.parse(iS);
             packagesToScan = getPackagesToScanInDocument(document);
         }
         catch (SAXException e)
         {
-            throw new XMLParsingException("The framework xml configuration file is not properly formed and cannot be parsed. Please check its structure. It name is myFrameworkConfig.xml and is placed in your src/main/resources folder" + "\n" + e.getMessage());
+            throw new XMLParsingException("The framework xml configuration file is not properly formed and cannot be parsed. Please check its structure. It name is " + oldConfigurationFileName + " and is placed in your src/main/resources folder" + "\n" + e.getMessage());
         }
         catch (IOException e)
         {
-            throw new FileNotFoundException("The configuration file hasn't been found. It must be named myFrameworkConfig.xml and be placed in your src/main/resources folder." + "\n" + e.getMessage());
+            throw new FileNotFoundException("The configuration file hasn't been found. It must be named " + oldConfigurationFileName + " and be placed in your src/main/resources folder." + "\n" + e.getMessage());
         }
         catch (ParserConfigurationException e)
         {
@@ -429,7 +453,7 @@ public final class ConfigurationReader
         try
         {
             DocumentBuilder dB = dBF.newDocumentBuilder();
-            InputStream iS = Thread.currentThread().getContextClassLoader().getResourceAsStream("/myFrameworkConfig.xml");
+            InputStream iS = Thread.currentThread().getContextClassLoader().getResourceAsStream("/" + oldConfigurationFileName);
 
             Document document = dB.parse(iS);
             actionMap = getActionMapFromDocument(document);
@@ -437,11 +461,11 @@ public final class ConfigurationReader
         }
         catch (SAXException e)
         {
-            throw new XMLParsingException("The framework configuration file is not properly formed. Please check its structure. It name is myFrameworkConfig.xml and is placed in your src/main/resources folder" + "\n" + e.getMessage());
+            throw new XMLParsingException("The framework configuration file is not properly formed. Please check its structure. It name is " + oldConfigurationFileName + " and is placed in your src/main/resources folder" + "\n" + e.getMessage());
         }
         catch (IOException e)
         {
-            throw new FileNotFoundException("The configuration file hasn't been found. It must be named myFrameworkConfig.xml and be placed in your src/main/resources folder." + "\n" + e.getMessage());
+            throw new FileNotFoundException("The configuration file hasn't been found. It must be named " + oldConfigurationFileName + " and be placed in your src/main/resources folder." + "\n" + e.getMessage());
         }
         catch (ParserConfigurationException e)
         {
@@ -615,5 +639,26 @@ public final class ConfigurationReader
         {
                 formName.getTextContent(), formClassPath.getTextContent()
         };
+    }
+
+    /**
+     * Vérifie que la classe donnée implémente l'interface donnée.
+     * @param aClass
+     *        Une classe dont on veut vérifier qu'elle implémente une interface.
+     * @param anInterface
+     *        L'interface dont on veut s'assurer qu'elle est implémentée par la
+     *        classe passée.
+     * @return true si la classe implémente l'interface, false autrement.
+     */
+    private boolean doesImplement(Class aClass, Class anInterface)
+    {
+        for (int i = 0; i < aClass.getInterfaces().length; i++)
+        {
+            if (aClass.getInterfaces()[i].equals(anInterface))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

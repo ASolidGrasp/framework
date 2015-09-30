@@ -2,9 +2,7 @@ package com.formation.taglibs;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.TagSupport;
@@ -17,16 +15,53 @@ import com.formation.exceptions.runtime.WrongActionCanonicalNameSpecifiedExcepti
 import com.formation.exceptions.runtime.WrongActionFormCanonicalNameSpecifiedException;
 import com.formation.factory.Factory;
 
+/**
+ * Tag &lt;tt:form action=""&gt; équivalent à &lt;form action=""&gt;.
+ * @author filippo
+ */
 public class FormTag extends TagSupport
 {
+    /**
+     * Version n°1.
+     */
+    private static final long serialVersionUID = 1L;
+    /**
+     * Action demandée à la soumission du formulaire.
+     */
     private String action;
-    private HttpSession httpSession;
+
+    // private HttpSession httpSession;
+
+    /**
+     * Map des actions et de leurs actionForm associés avec pour clef
+     * l'url-pattern leur étant associée.
+     */
     private Map<String, String[]> actionsAndFormsMap;
+    /**
+     * Classe de l'ActionForm.
+     */
     private Class formClass;
+    /**
+     * Nom canonique de la classe Action associée au formulaire.
+     */
     private String actionClassFullName;
+    /**
+     * Nom canonique de la classe ActionForm associée au formulaire.
+     */
     private String formClassFullName;
+    /**
+     * Issue de la vérification de l'existence de la classe Action asociée au
+     * formulaire.
+     */
     private boolean actionClassFound = false;
+    /**
+     * Issue de la vérification de l'existence de la classe ActionForm asociée
+     * au formulaire.
+     */
     private boolean formClassFound = false;
+    /**
+     * Logger.
+     */
     private Logger logger = Logger.getLogger(this.getClass());
 
     @Override
@@ -98,13 +133,14 @@ public class FormTag extends TagSupport
         if (actionClassFound && formClassFound)
         {
             Factory factory = Factory.getFactory();
-            httpSession = pageContext.getSession();
 
             // instanciation de l'action form
             ActionForm myForm;
 
             // m'assure que l'actionForm est instancié et qu'il est en session
             // pourquoi ??????????????????????????????????? dans quel but ?
+            // httpSession = pageContext.getSession();
+
             // if (httpSession.getAttribute(formClassFullName) == null)
             // {
             // // s'il n'y a pas d'instance en session on la crée
@@ -127,14 +163,23 @@ public class FormTag extends TagSupport
 
     }
 
+    /**
+     * getter de l'action du formulaire.
+     * @return L'action du formulaire.
+     */
     public String getAction()
     {
         return action;
     }
 
-    public void setAction(String action)
+    /**
+     * Setter de l'action du formulaire.
+     * @param pAction
+     *        action du formulaire.
+     */
+    public void setAction(String pAction)
     {
-        this.action = action;
+        this.action = pAction;
     }
 
 }
