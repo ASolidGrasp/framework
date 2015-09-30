@@ -1,0 +1,38 @@
+<taglib>
+    <tlib-version>1.0</tlib-version>
+    <jsp-version>2.0</jsp-version>
+    <short-name>Our TLD</short-name>
+    <tag>
+        <name>msg</name>
+        <tag-class>com.formation.taglibs.MessageTag</tag-class>
+        <body-content>empty</body-content>
+    </tag>
+    <tag>
+        <name>property</name>
+        <tag-class>com.formation.taglibs.PropertyTag</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>name</name>
+            <required>true</required>
+        </attribute>
+    </tag>
+    <tag>
+        <name>form</name>
+        <tag-class>com.formation.taglibs.FormTag</tag-class>
+        <body-content>JSP</body-content>
+        <attribute>
+            <name>action</name>
+            <required>true</required>
+        </attribute>
+    </tag>
+    <tag>
+        <name>input</name>
+        <tag-class>com.formation.taglibs.InputTag</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>name</name>
+            <required>true</required>
+        </attribute>
+    </tag>
+    <uri>www.do.org/taglibs/ourTags</uri>
+</taglib>

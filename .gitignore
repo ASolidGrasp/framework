@@ -1,0 +1,23 @@
+*.class
+*.orig
+*.txt
+*.prefs
+*.mf
+*.jar
+*.war
+*.ear
+*.png
+*.jpg
+.settings
+.classpath
+.project
+.jsdtscope
+application.xml
+org.*
+config
+description
+head
+pom.properties
+*/target/
+target
+Configuration JBoss
