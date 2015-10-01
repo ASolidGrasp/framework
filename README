@@ -11,7 +11,7 @@
     I) Utilisation
     II) Aspects techniques
     III) Souci de la qualité
-    IV) Nombreuses voies d'amélioration
+    IV) Prochaines fonctionnalités
     
     I - Utilisation
     ======================================================================================================================
@@ -36,7 +36,9 @@
         - <tt:input name=""/> qui sera rendu par <input type="text" name=""/>
         - <tt:property name="" /> qui permettra d'afficher les attributs de vos ActionForms
         - <tt:msg/> pour afficher des messages sur la saisie du formulaire.
-        
+    
+    Vérifier de bien encoder vos requêtes en UTF-8 pour que le rendu de vos caractères soit respecté.
+    
     II - Aspects techniques.
     ======================================================================================================================
     
@@ -59,7 +61,9 @@
     Design Patterns
     ---------------------------------
     Les Action et ActionForm sont instanciés par une Factory générique (elle-même singleton).
-    La classe de lecture de configuration ConfigurationReader est elle-même un singleton.
+    Autres singletons :
+        - la classe ConfigurationReader qui s'occupe de charger la configuration de l'utilisateur
+        - la classe FillForm qui remplit les ActionForm avec les valeurs soumises dans les formulaires.
 
     Exceptions
     ---------------------------------
@@ -106,30 +110,60 @@
     - simple (complexité cyclomatique <= 6), ce qui a conduit à couper les méthodes en nombre de petites méthodes aux noms explicites.
     Le fichier checkstyle.xml utilisé est joint.
     
-    IV Nombreuses voies d'amélioration
+    IV Prochaines fonctionnalités
     ======================================================================================================================
+    
+    Support multi-formulaire pour les tag de binding
+    ------------------------------------------------
+    <tt:property> se vrait ajouter un attribut indiquant le petit nom du formulaire ou chercher les informations
+    <tt:input> irait chercher l'information dans sa balise <tt:form>
+    Aujourd'hui tout le framework supporte la variété des Action et ActionForm mais par simplicité :
+    - <tt:property> n'a pas d'attribut pour désigner l'ActionForm d'où il tire l'information et prend par défaut l'info dans 
+    le dernier formulaire soumis.
+    - <tt:input> ne récupère pas encore l'ActionForm auquel il est lié à partir de l'Action désignée par le tag <tt:form> qui le 
+    contient. 
+    
+    Extension des types
+    -------------------
+    Pour le moment la conversion n'est pas assurée entre les String reçues en requête et les différents types possibles dans l'ActionForm.
+    Une Conversion automatique devrait être faite au niveau des tag <tt:input> et <tt:property>.
+    Le reste du framework supporte la variété de typage l'invocation des getter et setter des ActionForm se faisant sur le type de 
+    l'attribut correspondant. 
     
     TAGS
     -----
     Affiner les tags déjà présents pour prendre en compte d'autres attributs pouvant être intéressants, notamment :
     - type dans input pour prendre en charge également les submit
     - method dans form pour donner la possibilité de soumettre un form en GET
+    - possibilité de renseigner id et class partout pour supporter les styles
     
     Ajouter des tags pour prendre en charge :
-    - la conversion de type pour pouvoir mettre dans les ActionForm des attributs d'autre type que String.
-    - <head>
-    - <link>
-    - <script>
-    - <body>
-    - et bien d'autres encore
+    - <tt:repeat> pour supporter une liste d'éléments
+    - <tt:if> pour suporter les conditions
+    - <tt:ajax> pour supporter l'ajax
+    - <tt:head>
+    - <tt:link>
+    - <tt:script>
+    - <tt:body>
     
+    Optimisation 
+    -----------
+    Comme les ACtion sont Stateless, la Factory pourrait les instancier en singleton si elle supporte cette charge et sinon créer des 
+    pools pour que les instances soient partagées.
+    L'unicité de l'instance de l'ActionForm au niveau de la factory pourrait être assuré avec une Map ayant pour clef le canonical name
+    de la classe Action instanciée.
+    Pour distinguer Class d'ActionForm on vérifierait qu'elle implémente Action (comme on le fait déjà dans le scan des Annotations).
     
     Annotations
     -----------
     Scanner partout et ne pas avoir à spécifier de package à scanner.
     
-    Exception
+    Exceptions
     ---------
-    Avoir une idée plus précise de la gestion des exceptions
+    Nouvelle exception pour indiquer qu'une annotation @Action est placée sur une classe n'implémentant pas Action.
+    Le test est déjà en place. 
+    Nouvelle exception pour indiquer qu'une annotation @ActionForm est placée sur une classe n'héritant pas d'ActionForm.
+    Le test et déjà en place.
+    Se faire une idée plus précise de la gestion des exceptions.
     
 
